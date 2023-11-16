@@ -1,0 +1,28 @@
+
+ <!--Add a nav bar here -->
+
+ {% extends "./base.html" %}
+
+ {% block title %}Page Title{% endblock %}
+
+ {% block content %}
+     <!-- Unique content for this particular view -->
+    <h1>
+        User Login
+    </h1>
+
+
+    <form action="{% url 'djangoapp:login' %}"  method="post">
+        {% csrf_token %}
+        <div class="container">
+          <h1>Login</h1>
+          <label for="username"><b>User Name</b></label>
+          <input type="text" placeholder="Enter User Name: " name="username" required>
+          <label for="password"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password: " name="password" required>
+          <div>
+            <button class="button" type="submit">Login</button>
+          </div>
+        </div>
+      </form>
+ {% endblock %}
