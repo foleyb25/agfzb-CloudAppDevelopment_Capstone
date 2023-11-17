@@ -90,21 +90,16 @@ def registration_request(request):
         else:
             return render(request, 'djangoapp/registration.html', context)
 
-# Update the `get_dealerships` view to render the index page with a list of dealerships
-# def get_dealerships(request):
-#     context = {}
-#     if request.method == "GET":
-#         return render(request, 'djangoapp/index.html', context)
-
 def get_dealerships(request):
     if request.method == "GET":
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/3376dfa8-0236-47e0-ad38-431deb75996a/default/get-dealerships"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
-        # Concat all dealer's short name
-        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
         # Return a list of dealer short name
-        return HttpResponse(dealer_names)
+        context = {
+            'dealership_list': dealerships
+        }
+        return render(request, 'djangoapp/index.html', context)
     
 def get_dealership_by_state(request):
     if request.method == "GET":
@@ -134,42 +129,59 @@ def get_dealer_details(request, dealer_id):
         reviews = get_dealer_reviews_from_cf(url)
         # Concat all dealer's short name
         sentiments = ' '.join([review.sentiment for review in reviews])
+
+        context = {
+            'review_list': reviews,
+            "dealer_id": dealer_id
+        }
+        return render(request, 'djangoapp/dealer_details.html', context)
         # Return a list of dealer short name
         return HttpResponse(sentiments)
 
 # Create a `add_review` view to submit a review
 def add_review(request, dealer_id):
-    print("IN ADD REVIEW")
-    if request.user.is_authenticated:
-        # Create review dictionary
-        review = {
-            "time": datetime.utcnow().isoformat(),
-            "name": request.user.username,  # Assuming the User model has a username field
-            "dealership": dealer_id,
-            "review": request.POST.get('review', ''),  # Assuming the review is sent as a POST field
-            "purchase": request.POST.get('purchase', False),  # Example field
-            "purchase_date": request.POST.get('purchase_date', ''),
-            "car_make": request.POST.get('car_make', ''),
-            "car_model": request.POST.get('car_model', ''),
-            "car_year": request.POST.get('car_year', ''),
+    cars = [
+            {"id": 1, "name": "Model S", "make": {"name": "Tesla"}, "year": 2020},
+            {"id": 2, "name": "Mustang", "make": {"name": "Ford"}, "year": 2021},
+            {"id": 3, "name": "Civic", "make": {"name": "Honda"}, "year": 2019},
+            {"id": 4, "name": "Corolla", "make": {"name": "Toyota"}, "year": 2018},
+            {"id": 5, "name": "911", "make": {"name": "Porsche"}, "year": 2022}
+    ]
+    if request.method == "GET":
+        context = {"dealer_id": dealer_id, "cars": cars}
+        return render(request, 'djangoapp/add_review.html', context)
+    elif request.method == "POST":
+        print("REQUEST: ", request.POST)
+        car_index = int(request.POST.get("car", '')) - 1
+        if request.user.is_authenticated:
+            # Create review dictionary
+            review = {
+                "time": datetime.utcnow().isoformat(),
+                "name": request.user.username,  # Assuming the User model has a username field
+                "dealership": dealer_id,
+                "review": request.POST.get('review', ''),  # Assuming the review is sent as a POST field
+                "purchase": request.POST.get('purchase', False),  # Example field
+                "purchase_date": request.POST.get('purchase_date', ''),
+                "car_make": cars[car_index]["make"]["name"],
+                "car_model": cars[car_index]["name"],
+                "car_year": cars[car_index]["year"],
 
-        }
+            }
 
-        # Create json_payload to be sent
-        json_payload = {
-            "review": review
-        }
+            # Create json_payload to be sent
+            json_payload = {
+                "review": review
+            }
 
-        # Define the URL for posting the review, e.g., your cloud function endpoint
-        url = "your cloud function endpoint for posting reviews"
+            # Define the URL for posting the review, e.g., your cloud function endpoint
+            url = "https://us-south.functions.appdomain.cloud/api/v1/web/3376dfa8-0236-47e0-ad38-431deb75996a/default/post-review"
 
-        # Make POST request to the cloud function and get the response
-        response = post_request(url, json_payload, dealerId=dealer_id)
+            # Make POST request to the cloud function and get the response
+            post_request(url, json_payload, dealerId=dealer_id)
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+        else:
+            # If the user is not authenticated, return a message or redirect to login page
+            return HttpResponse("User is not authenticated", status=401)
 
-        # Return the response as an HttpResponse
-        return HttpResponse(response)
-    else:
-        # If the user is not authenticated, return a message or redirect to login page
-        return HttpResponse("User is not authenticated", status=401)
 
 

@@ -1,16 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    {% load static %}
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/css/bootstrap-datepicker.css" rel="stylesheet">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
+{% extends 'djangoapp/base.html' %}
+{% block content %}
 
-</head>
-    <body>
-    <!--Add review form here -->
-    </body>
-</html>
+<form action="{% url 'djangoapp:add_review' dealer_id %}" method="POST" class="p-3">
+    {% csrf_token %}
+    <div class="mb-3">
+        <textarea class="form-control" id="review" name="review" rows="3" placeholder="Enter your review..." required></textarea>
+    </div>
+    
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="purchase_check" id="purchase_check">
+        <label class="form-check-label" for="purchase_check">Purchased from this dealer</label>
+    </div>
+
+    <div class="mb-3">
+        <select name="car" id="car" class="form-select" required>
+            <option value="" disabled selected>Select your car</option>
+            {% for car in cars %}
+                <option value="{{ car.id }}">{{ car.name }} - {{ car.make.name }} - {{ car.year|date:"Y" }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <input class="form-control" type="text" name="purchase_date" id="purchase_date" placeholder="Purchase date (mm/dd/yyyy)">
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Submit Review</button>
+</form>
+
+
+<script type="text/javascript">
+    $('.date-own').datepicker({
+        format: 'mm/dd/yyyy'
+    });
+</script>
+
+{% endblock %}

@@ -1,18 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dealership Review</title>
-    {% load static %}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-</head>
+{% extends "./base.html" %}
 
-    <body>
+{% block title %}Page Title{% endblock %}
 
-    <!--Add a nav bar here -->
+{% block content %}
 
-    <!-- Add reviews as cards -->
+    <div class="container my-4">
+        {% if user.is_authenticated %}
+            <div class="text-right mb-3">
+                <a href="/djangoapp/add_review/{{dealer_id}}" class="btn btn-success">Add Review</a>
+            </div>
+        {% endif %}
 
-    </body>
+        <div class="card-columns">
+            {% for review in review_list %}
+                <div class="card">
+                    <img class="card-img-top" src="{{ MEDIA_URL }}/emoji/{{ review.sentiment }}.png" alt="{{ review.sentiment }}">
+                    <div class="card-body">
+                        <h5 class="card-title">Model: {{ review.car_model }} | Make: {{ review.car_make }} | Year: {{ review.car_year }}</h5>
+                        <p class="card-text">{{ review.review }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
 
-</html>
+    </div>
+    {% endblock %}

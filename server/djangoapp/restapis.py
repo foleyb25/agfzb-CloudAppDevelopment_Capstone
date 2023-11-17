@@ -4,10 +4,10 @@ from .models import CarDealer, CarMake, DealerReview
 from requests.auth import HTTPBasicAuth
 
 
-def get_request(url, **kwargs):
+def get_request(url):
     print("GET from {} ".format(url))
     try:
-        response =  requests.get(url, params=kwargs)
+        response =  requests.get(url)
         # Call get method of requests library with URL and parameters
     except:
         # If any error occurs
@@ -27,24 +27,22 @@ def post_request(url, json_payload, **kwargs):
     }
     headers = {'Content-Type': 'application/json'}
     if api_key:
-        print("API_KEY", api_key)
-        print("CALLING SECURE API WITH PARAMS: ", params)
         # Basic authentication GET
         response = requests.post(url, params=params, headers=headers,
                                 json=json_payload, auth=HTTPBasicAuth('apikey', api_key))
     else:
         # no auth
         response =  requests.post(url, params=kwargs, json=json_payload)
+    return response
 
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
 
 
-def get_dealers_from_cf(url, **kwargs):
+def get_dealers_from_cf(url):
     results = []
     # Call get_request with a URL parameter
     json_result = get_request(url)
-    print(json_result)
     if json_result:
         # Get the row list in JSON as dealers
         dealers = json_result["result"]
@@ -64,7 +62,6 @@ def get_dealer_reviews_from_cf(url, **kwargs):
     results = []
     # Call get_request with a URL parameter
     json_result = get_request(url)
-    print(json_result)
     if json_result:
         # Get the row list in JSON as dealers
         reviews = json_result["result"]
@@ -90,8 +87,8 @@ def get_dealer_reviews_from_cf(url, **kwargs):
 
 # Create an `analyze_review_sentiments` method to call Watson NLU and analyze text
 def analyze_review_sentiments(dealerReview):
-    nlu_url = ""
-    api_key = ""
+    nlu_url = "https://api.au-syd.natural-language-understanding.watson.cloud.ibm.com/instances/593ce16d-877c-4dfb-8188-66e0398cfedf/v1/analyze"
+    api_key = "LVlsuN8_MQ_vZM1Z8Wxg63FDi5z1sySj4kKbWokjdGC2"
     params = {
         "version": "2021-03-25",
     }
@@ -104,7 +101,6 @@ def analyze_review_sentiments(dealerReview):
     print("POST to {} with data: {}".format(nlu_url, data))
     response = requests.post(nlu_url, params=params, headers=headers, auth=HTTPBasicAuth('apikey', api_key), json=data)
     
-    print("RESPONSE: ", response.text)
     if response.status_code == 200:
         sentiment_result = response.json()
         sentiment_label = sentiment_result["sentiment"]["document"]["label"]
